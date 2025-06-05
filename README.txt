@@ -1,1 +1,1 @@
-Clone repository, run BankApp. Enjoy
+Clone repository, run BankApp.java. Enjoy

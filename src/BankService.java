@@ -11,7 +11,7 @@ public class BankService {
     }
 
     private int newAccountNum() {
-        int num = 0;
+        int num = 0; //initialize flag which will be true once unique number is found
         boolean unique = false;
 
         while (!(unique)) {
@@ -32,8 +32,7 @@ public class BankService {
             double newBalance = account.getBalance() + amount;
             account.setBalance(newBalance);
             return true;
-        }
-        else {return false;}
+        } else {return false;}
     }
 
     public boolean withdraw (int AccountNum, double amount) {
@@ -42,8 +41,7 @@ public class BankService {
             double newBalance = account.getBalance() - amount;
             account.setBalance(newBalance);
             return true;
-        }
-        else {return false;}
+        } else {return false;}
     }
 
     public boolean transfer (int sender, int recipient, double amount) {
@@ -53,7 +51,10 @@ public class BankService {
             double newBalanceS = accR.getBalance() - amount;
             double newBalanceR = accR.getBalance() + amount;
             return true;
-        }
-        else {return false;}
+        } else {return false;}
+    }
+
+    public boolean validateLogin (int accountNum, int pin) {
+
     }
 }
