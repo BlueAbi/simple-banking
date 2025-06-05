@@ -11,18 +11,10 @@ public class BankService {
     }
 
     private int newAccountNum() {
-        int num = 0; //initialize flag which will be true once unique number is found
-        boolean unique = false;
-
-        while (!(unique)) {
-            // Generate a random 8-digit number
-            num = (int) (Math.random() * 100000000);  // Random number between 0 and 99999999
-
-            // Check if the number is already used
-            if (accounts.containsKey(num)) {
-                unique = true;  // If it's unique, exit the loop
-            }
-        }
+        int num;
+        do {
+            num = (int) (Math.random() * 100_000_000); // Generate 8-digit number
+        } while (accounts.containsKey(num)); // Keep looping until it's NOT in the map
         return num;
     }
 
@@ -48,13 +40,18 @@ public class BankService {
         Account accS = accounts.get(sender);
         Account accR = accounts.get(recipient);
         if (accS != null && accR != null && !accS.isLocked() && (accS.getBalance() >= amount)) {
-            double newBalanceS = accR.getBalance() - amount;
-            double newBalanceR = accR.getBalance() + amount;
+            accS.setBalance(accS.getBalance() - amount); // Deducts from sender
+            accR.setBalance(accR.getBalance() + amount); // Adds to recipient
             return true;
         } else {return false;}
     }
 
     public boolean validateLogin (int accountNum, int pin) {
+        Account account = accounts.get(accountNum);
+        return account != null && account.getPin() == pin && !account.isLocked();
+    }
 
+    public void deleteAccount(int accountNum) {
+        accounts.remove(accountNum);
     }
 }
