@@ -1,0 +1,27 @@
+name: Version Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger this on tags starting with v (e.g., v1.0.0)
+
+jobs:
+  release:
+    runs-on: ubuntu-latest  # Run the release job on the latest Ubuntu
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4  # This checks out your repository's code
+
+    - name: Archive source files as .zip
+      run: |
+        mkdir -p release  # Create a release directory
+        zip -r release/simple-banking.zip .  # Create a .zip file of the source code
+        tar -czf release/simple-banking.tar.gz .  # Create a .tar.gz file of the source code
+
+    - name: Upload release assets to GitHub
+      uses: softprops/action-gh-release@v1  # GitHub Action to upload assets to GitHub Releases
+      with:
+        files: release/simple-banking.zip,release/simple-banking.tar.gz  # Upload the files
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub token for authentication
