@@ -1,9 +1,9 @@
 import java.util.HashMap;
 
 public class Account {
-    private String name;
-    private int AccountNum; // act #
-    private int pin; // pin #
+    private final String name;
+    private final int AccountNum; // act #
+    private final int pin; // pin #
     private double balance; // checking balance
     private boolean lock; // if account is locked
 
