@@ -1,1 +1,2 @@
-Clone repository, run BankApp.java. Enjoy
+Download source code. Compile BankApp, then run.
+Enjoy.
