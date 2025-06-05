@@ -5,24 +5,28 @@ public class BankApp {
     private static final Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {
-        while (true) {
-            showMainMenu();
-            int choice = scanner.nextInt();
-            scanner.nextLine();
+        try {
+            while (true) {
+                showMainMenu();
+                int choice = scanner.nextInt();
+                scanner.nextLine();
 
-            switch (choice) {
-                case 1:
-                    createAccount();
-                    break;
-                case 2:
-                    loginScreen();
-                    break;
-                case 3:
-                    System.out.println("Exiting...");
-                    return;
-                default:
-                    System.out.println("Invalid choice.");
+                switch (choice) {
+                    case 1:
+                        createAccount();
+                        break;
+                    case 2:
+                        loginScreen();
+                        break;
+                    case 3:
+                        System.out.println("Exiting...");
+                        return;
+                    default:
+                        System.out.println("Invalid choice.");
+                }
             }
+        } finally {
+            scanner.close();
         }
     }
 
@@ -81,6 +85,16 @@ public class BankApp {
         System.out.print("Enter your choice: ");
     }
 
+    private static void loginOptions() {
+        System.out.println("----- Account Menu -----");
+        System.out.println("1. Deposit");
+        System.out.println("2. Withdraw");
+        System.out.println("3. Transfer");
+        System.out.println("4. Delete Account");
+        System.out.println("5. Logout");
+        System.out.print("Enter your choice: ");
+    }
+
     private static void createAccount() {
         System.out.print("Enter your name: ");
         String name = scanner.nextLine();
@@ -96,6 +110,11 @@ public class BankApp {
 
     private static void deposit(int accountNum) {
         System.out.print("Enter amount to deposit: ");
+        while (!scanner.hasNextDouble()) {
+            System.out.println("Invalid input. Please enter a valid amount.");
+            scanner.nextLine();  // Clear the invalid input
+            System.out.print("Enter amount to deposit: ");
+        }
         double amount = scanner.nextDouble();
         scanner.nextLine();
 
@@ -107,7 +126,12 @@ public class BankApp {
     }
 
     private static void withdraw(int accountNum) {
-        System.out.print("Enter amount to deposit: ");
+        System.out.print("Enter amount to withdraw: ");
+        while (!scanner.hasNextDouble()) {
+            System.out.println("Invalid input. Please enter a valid amount.");
+            scanner.nextLine();  // Clear the invalid input
+            System.out.print("Enter amount to deposit: ");
+        }
         double amount = scanner.nextDouble();
         scanner.nextLine();
 
@@ -134,9 +158,14 @@ public class BankApp {
     }
 
     private static void deleteAcc(int accountNum) {
-        // Optional: Add confirmation logic
-        bankService.deleteAccount(accountNum);
-        System.out.println("Account deleted.");
+        System.out.print("Are you sure you want to delete your account? (yes/no): ");
+        String confirm = scanner.nextLine();
+        if ("yes".equalsIgnoreCase(confirm)) {
+            bankService.deleteAccount(accountNum);
+            System.out.println("Account successfully deleted.");
+        } else {
+            System.out.println("Account deletion cancelled.");
+        }
     }
 
 }
