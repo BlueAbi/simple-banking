@@ -1,4 +1,4 @@
-name: Build and Upload Artifact
+name: Version Release
 
 on:
   push:
@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Create release directory
+      run: mkdir -p release
+
     - name: Checkout code
       uses: actions/checkout@v4
 
@@ -31,17 +34,19 @@ jobs:
     - name: Archive source files as .zip
       run: |
         VERSION=${GITHUB_REF##*/}
-        mkdir -p release  # Ensure the release directory exists
+        mkdir -p release
         zip -r "release/simple-banking-${VERSION}.zip" . -x "release/*"
         tar -czf "release/simple-banking-${VERSION}.tar.gz" .
 
-    - name: Upload Build Artifact
-      uses: actions/upload-artifact@v4.6.2
+    - name: List release directory (for debugging)
+      run: ls -alh release  # Add this step to check if files exist
+
+    - name: Upload release assets to GitHub
+      uses: softprops/action-gh-release@v1
       with:
-        name: simple-banking-artifact-${GITHUB_REF##*/}  # Artifact name, including version
-        path: release/simple-banking-${GITHUB_REF##*/}.zip  # Path to the artifact
-        if-no-files-found: error  # Fail if no matching files found
-        retention-days: 30  # Optional: Retain for 30 days
-        compression-level: 6  # Optional: Default compression
-        overwrite: true  # Optional: Allow overwrite if the artifact already exists
-        include-hidden-files: false  # Optional: Do not include hidden files
+        files: |
+          release/simple-banking-${GITHUB_REF##*/}.zip
+          release/simple-banking-${GITHUB_REF##*/}.tar.gz
+          build/libs/*.jar
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Ensure token has correct permissions
