@@ -30,7 +30,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh auth login --with-token <<< "${GITHUB_TOKEN}"
           gh release create "v${{ github.event.inputs.version }}" \
             release/source-${{ github.event.inputs.version }}.zip \
             release/source-${{ github.event.inputs.version }}.tar.gz \
