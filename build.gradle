@@ -2,21 +2,20 @@ plugins {
     id 'java'  // Apply the Java plugin
 }
 
-group = 'com.bankapp'  // Change this to your project’s group name, typically the domain or organization
-version = '1.0.1'      // Set the version of your project, update this with each release
+group = 'com.bankapp'  // Set the group name for your project
+version = '1.0.1'      // Set the version of your project
 
-sourceCompatibility = '17'  // Java version to compile with
+sourceCompatibility = '17'  // Set the Java version for compilation
 
 repositories {
     mavenCentral()  // Use Maven Central to fetch dependencies
 }
 
 dependencies {
-    //implementation 'org.springframework.boot:spring-boot-starter'  // Example dependency, you can add other necessary ones
-    // If you don’t need Spring Boot, you can remove the above dependency
+    // No dependencies for now, you can add them later
 }
 
-jar {
+tasks.jar {
     manifest {
         attributes(
             'Main-Class': 'com.bankapp.BankApp'  // Specify the main class for your application
