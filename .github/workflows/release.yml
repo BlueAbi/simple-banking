@@ -1,9 +1,11 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - 'v*'  # Trigger on version tags like v1.0.0
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'
+        required: true
 
 env:
   JAVA_VERSION: '17'
@@ -12,50 +14,40 @@ env:
 jobs:
   release:
     runs-on: ubuntu-latest
-
     permissions:
-      contents: write  # Required for GitHub CLI to create a release
+      contents: write  # Necessary permission for creating releases
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Java
+      - name: Set up Java (Temurin 17)
         uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: ${{ env.JAVA_DISTRO }}
 
-      - name: Build project
+      - name: Build the project
         run: ./gradlew build
 
-      - name: Create release directory
-        run: mkdir -p release
-
-      - name: Copy .jar to release directory
+      - name: Prepare release assets
         run: |
-          JAR_FILE=$(find build/libs -name "*.jar" | head -n 1)
-          cp "$JAR_FILE" release/
-
-      - name: Archive source files
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/}
-          zip -r release/source-${VERSION}.zip .
-          tar -czf release/source-${VERSION}.tar.gz .
-
-      - name: Install GitHub CLI
-        uses: cli/cli-action@v1
+          mkdir -p release
+          zip -r release/source-${{ github.event.inputs.version }}.zip .
+          tar -czf release/source-${{ github.event.inputs.version }}.tar.gz .
+          mv build/libs/*.jar release/simple-banking-${{ github.event.inputs.version }}.jar
 
       - name: Authenticate GitHub CLI
         run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
 
-      - name: Create GitHub Release
+      - name: Create GitHub release with assets
         run: |
-          VERSION=${GITHUB_REF#refs/tags/}
-          gh release create "$VERSION" \
-            release/source-${VERSION}.zip \
-            release/source-${VERSION}.tar.gz \
-            release/*.jar \
-            --title "$VERSION" \
-            --notes "Automated release for $VERSION" \
+          gh release create "v${{ github.event.inputs.version }}" \
+            release/source-${{ github.event.inputs.version }}.zip \
+            release/source-${{ github.event.inputs.version }}.tar.gz \
+            release/simple-banking-${{ github.event.inputs.version }}.jar \
+            --title "v${{ github.event.inputs.version }}" \
+            --notes "Automated release from master" \
             --prerelease
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Make sure the token is used correctly
