@@ -36,14 +36,7 @@ jobs:
         # Move the generated .jar file to the release directory
         mv build/libs/*.jar release/simple-banking-${{ github.event.inputs.version }}.jar
 
-    - name: Authenticate GitHub CLI
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: echo "${GITHUB_TOKEN}" | gh auth login --with-token
-
     - name: Create GitHub Pre-release with Assets
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         gh release create "v${{ github.event.inputs.version }}" \
           release/source-${{ github.event.inputs.version }}.zip \
@@ -52,3 +45,5 @@ jobs:
           --title "v${{ github.event.inputs.version }}" \
           --notes "Automated pre-release from master" \
           --prerelease
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # This is the correct way to use the token
