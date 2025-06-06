@@ -3,11 +3,13 @@ name: Java Release with Gradle
 on:
   push:
     tags:
-      - 'v*'  # Triggers only on tags like v1.0.0
+      - 'v*'
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # 🔑 Required to create releases
 
     steps:
     - name: Checkout code
@@ -25,10 +27,7 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew build
 
-    - name: List generated JARs
-      run: ls -lh build/libs
-
-    - name: Create GitHub Release and Upload JAR
+    - name: Upload JAR to GitHub Release
       uses: softprops/action-gh-release@v1
       with:
         files: build/libs/*.jar
