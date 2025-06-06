@@ -1,62 +1,47 @@
-name: Version Release # Workflow name
+name: Test Release
 
 on:
-  push:
-    tags:
-      - 'v*' # Trigger this workflow on any Git tag starting with 'v' (e.g., v1.0.0, v2.1.5)
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0-test)'
+        required: true
 
 jobs:
   release:
-    runs-on: ubuntu-latest # The operating system for the GitHub Actions runner
-    permissions:
-      contents: write # Grants necessary permissions to create GitHub Releases and upload assets
+    runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4 # Action to clone your repository
-      with:
-        fetch-depth: 0 # Ensures all Git history, including tags, is available
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4 # Action to set up the Java Development Kit environment
-      with:
-        java-version: '17'
-        distribution: 'temurin' # Recommended open-source JDK distribution
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew # Makes the Gradle Wrapper script executable
+      - name: Build project
+        run: ./gradlew build
 
-    - name: Get tag version
-      id: get_version # Assigns an ID to this step to reference its output later
-      run: echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-      # This command extracts the actual version string (e.g., "1.0.1") from the full Git ref (e.g., "refs/tags/v1.0.1").
-      # It then stores this cleaned version in an output variable called RELEASE_VERSION.
+      - name: Package source as zip and tar.gz
+        run: |
+          mkdir -p release
+          zip -r release/source-${{ github.event.inputs.version }}.zip . -x release/\*
+          tar -czf release/source-${{ github.event.inputs.version }}.tar.gz .
 
-    - name: Build with Gradle
-      run: ./gradlew clean build -Pversion=${{ steps.get_version.outputs.RELEASE_VERSION }}
-      # Executes the Gradle build.
-      # The '-Pversion=' argument passes the extracted tag version to your build.gradle file.
-      # Gradle will then use this version for the JAR file's name and internal manifest.
+      - name: Install GitHub CLI
+        uses: cli/cli-action@v2
 
-    - name: List contents of build/libs # <--- NEW DEBUGGING STEP
-      run: |
-        echo "Listing contents of build/libs directory:"
-        ls -l build/libs/
-        echo "Listing contents of build/ directory (recursive):"
-        ls -R build/
-
-    - name: Archive source files as .zip and .tar.gz
-      run: |
-        mkdir -p release
-        zip -r release/simple-banking-${{ steps.get_version.outputs.RELEASE_VERSION }}-src.zip . -x "release/*" ".git/*" ".gradle/*" "build/*"
-        tar -czf release/simple-banking-${{ steps.get_version.outputs.RELEASE_VERSION }}-src.tar.gz --exclude=release --exclude=.git --exclude=.gradle --exclude=build .
-
-    - name: Upload release assets to GitHub
-      uses: softprops/action-gh-release@v1
-      with:
-        files: |
-          release/simple-banking-${{ steps.get_version.outputs.RELEASE_VERSION }}-src.zip
-          release/simple-banking-${{ steps.get_version.outputs.RELEASE_VERSION }}-src.tar.gz
-          build/libs/bankapp-${{ steps.get_version.outputs.RELEASE_VERSION }}.jar # This path assumes 'bankapp' is your project name and the JAR is in build/libs/
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Draft Pre-Release with GitHub CLI
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create ${{ github.event.inputs.version }} \
+            release/source-${{ github.event.inputs.version }}.zip \
+            release/source-${{ github.event.inputs.version }}.tar.gz \
+            build/libs/*.jar \
+            --title "Test Release ${{ github.event.inputs.version }}" \
+            --notes "This is a test prerelease." \
+            --draft \
+            --prerelease
