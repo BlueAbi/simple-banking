@@ -1,10 +1,10 @@
-name: Test GitHub CLI Release
+name: Manual Release
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version'
+        description: 'Release version (e.g., 1.0.0)'
         required: true
 
 jobs:
@@ -12,27 +12,44 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    - name: Checkout source
+      uses: actions/checkout@v4
 
-      - name: Install GitHub CLI
-        run: |
-          sudo apt update
-          sudo apt install -y gh
+    - name: Set up Java 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
 
-      - name: Zip source code
-        run: |
-          mkdir -p release
-          zip -r release/source-${{ github.event.inputs.version }}.zip . -x 'release/*' '.git/*'
-          tar -czf release/source-${{ github.event.inputs.version }}.tar.gz .
+    - name: Set up Gradle
+      uses: gradle/wrapper-validation-action@v1
+      with:
+        gradle-version: '7.4'  # Specify your Gradle version
 
-      - name: Create GitHub Release (test)
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create "v${{ github.event.inputs.version }}" \
-            release/source-${{ github.event.inputs.version }}.zip \
-            release/source-${{ github.event.inputs.version }}.tar.gz \
-            --title "v${{ github.event.inputs.version }}" \
-            --notes "Test release using GitHub CLI" \
-            --prerelease
+    - name: Build with Gradle
+      run: ./gradlew build  # Build the project and generate the .jar file
+
+    - name: Prepare source archives
+      run: |
+        mkdir -p release
+        zip -r release/source-${{ github.event.inputs.version }}.zip . -x "release/*"
+        tar -czf release/source-${{ github.event.inputs.version }}.tar.gz .
+        # Move the generated .jar file to the release directory
+        mv build/libs/*.jar release/simple-banking-${{ github.event.inputs.version }}.jar
+
+    - name: Authenticate GitHub CLI
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: echo "${GITHUB_TOKEN}" | gh auth login --with-token
+
+    - name: Create GitHub Pre-release with Assets
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release create "v${{ github.event.inputs.version }}" \
+          release/source-${{ github.event.inputs.version }}.zip \
+          release/source-${{ github.event.inputs.version }}.tar.gz \
+          release/simple-banking-${{ github.event.inputs.version }}.jar \
+          --title "v${{ github.event.inputs.version }}" \
+          --notes "Automated pre-release from master" \
+          --prerelease
