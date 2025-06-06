@@ -38,19 +38,25 @@ jobs:
       # The '-Pversion=' argument passes the extracted tag version to your build.gradle file.
       # Gradle will then use this version for the JAR file's name and internal manifest.
 
+    - name: List contents of build/libs # <--- NEW DEBUGGING STEP
+      run: |
+        echo "Listing contents of build/libs directory:"
+        ls -l build/libs/
+        echo "Listing contents of build/ directory (recursive):"
+        ls -R build/
+
     - name: Archive source files as .zip and .tar.gz
       run: |
         mkdir -p release
-        zip -r release/simple-banking-${{ steps.get_version.outputs.RELEASE_VERSION }}-src.zip . -x "release/*" ".git/*" ".gradle/*" "build/*" # Exclude build artifacts and git history
-        tar -czf release/simple-banking-${{ steps.get_version.outputs.RELEASE_VERSION }}-src.tar.gz . --exclude=release --exclude=.git --exclude=.gradle --exclude=build # Exclude build artifacts and git history
+        zip -r release/simple-banking-${{ steps.get_version.outputs.RELEASE_VERSION }}-src.zip . -x "release/*" ".git/*" ".gradle/*" "build/*"
+        tar -czf release/simple-banking-${{ steps.get_version.outputs.RELEASE_VERSION }}-src.tar.gz --exclude=release --exclude=.git --exclude=.gradle --exclude=build .
 
     - name: Upload release assets to GitHub
-      uses: softprops/action-gh-release@v1 # Action to create a GitHub Release and upload files
+      uses: softprops/action-gh-release@v1
       with:
         files: |
           release/simple-banking-${{ steps.get_version.outputs.RELEASE_VERSION }}-src.zip
           release/simple-banking-${{ steps.get_version.outputs.RELEASE_VERSION }}-src.tar.gz
-          build/libs/bankapp-${{ steps.get_version.outputs.RELEASE_VERSION }}.jar # **Ensure this matches your JAR's actual filename**
-                                                                               # The 'bankapp' part comes from your group/project name in build.gradle
+          build/libs/bankapp-${{ steps.get_version.outputs.RELEASE_VERSION }}.jar # This path assumes 'bankapp' is your project name and the JAR is in build/libs/
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Automatically provided token for authentication
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
