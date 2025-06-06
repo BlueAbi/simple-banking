@@ -1,0 +1,39 @@
+name: Test GitHub CLI Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'
+        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install GitHub CLI
+        run: |
+          sudo apt update
+          sudo apt install -y gh
+
+      - name: Zip source code
+        run: |
+          mkdir -p release
+          zip -r release/source-${{ github.event.inputs.version }}.zip . -x 'release/*' '.git/*'
+          tar -czf release/source-${{ github.event.inputs.version }}.tar.gz .
+
+      - name: Create GitHub Release (test)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh auth login --with-token <<< "${GITHUB_TOKEN}"
+          gh release create "v${{ github.event.inputs.version }}" \
+            release/source-${{ github.event.inputs.version }}.zip \
+            release/source-${{ github.event.inputs.version }}.tar.gz \
+            --title "v${{ github.event.inputs.version }}" \
+            --notes "Test release using GitHub CLI" \
+            --prerelease
