@@ -30,9 +30,10 @@ jobs:
 
     - name: Archive source files as .zip
       run: |
-        mkdir -p release
-        zip -r release/simple-banking.zip .
-        tar -czf release/simple-banking.tar.gz .
+        VERSION=${GITHUB_REF##*/}
+        zip -r release/simple-banking-$VERSION.zip .
+        tar -czf release/simple-banking-$VERSION.tar.gz .
+
 
     - name: Upload release assets to GitHub
       uses: softprops/action-gh-release@v1
