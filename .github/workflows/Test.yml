@@ -23,8 +23,7 @@ jobs:
 
     - name: Set up Gradle
       uses: gradle/wrapper-validation-action@v1
-      with:
-        gradle-version: '7.4'  # Specify your Gradle version
+      # No need for gradle-version here
 
     - name: Build with Gradle
       run: ./gradlew build  # Build the project and generate the .jar file
