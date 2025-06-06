@@ -1,8 +1,42 @@
-# Ignore Gradle project-specific cache directory
-.gradle
+# === Java & General ===
+*.class
+*.log
+*.tmp
+*.swp
+*.bak
+*.DS_Store
+*.idea/
+*.iml
 
-# Ignore Gradle build output directory
-build
+# === Build directories ===
+/build/
+/out/
+/target/
 
-# Ignore IntelliJ output
-out
+# === Gradle ===
+.gradle/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# === IntelliJ ===
+.idea/
+*.iws
+*.ipr
+*.iml
+
+# === OS Files ===
+Thumbs.db
+.DS_Store
+
+# === Release artifacts ===
+/release/
+/*.zip
+/*.tar.gz
+
+# === Environment & config ===
+*.env
+*.local
+*.properties.local
+
+# === Logs ===
+*.log
