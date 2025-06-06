@@ -7,21 +7,23 @@ on:
 
 jobs:
   release:
-    runs-on: ubuntu-latest  # Run the release job on the latest Ubuntu
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # ✅ Required to create a release and upload assets
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4  # This checks out your repository's code
+      uses: actions/checkout@v4
 
     - name: Archive source files as .zip
       run: |
-        mkdir -p release  # Create a release directory
-        zip -r release/simple-banking.zip .  # Create a .zip file of the source code
-        tar -czf release/simple-banking.tar.gz .  # Create a .tar.gz file of the source code
+        mkdir -p release
+        zip -r release/simple-banking.zip . -x "release/*"
+        tar -czf release/simple-banking.tar.gz . --exclude=release
 
     - name: Upload release assets to GitHub
-      uses: softprops/action-gh-release@v1  # GitHub Action to upload assets to GitHub Releases
+      uses: softprops/action-gh-release@v1
       with:
-        files: release/simple-banking.zip,release/simple-banking.tar.gz  # Upload the files
+        files: release/simple-banking.zip,release/simple-banking.tar.gz
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub token for authentication
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
