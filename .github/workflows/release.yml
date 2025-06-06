@@ -16,37 +16,20 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-
-    - name: Set up Gradle
-      uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582
-
-    - name: Build with Gradle
-      run: ./gradlew build
-
-    - name: List files in build/libs
-      run: ls -alh build/libs
-
-    - name: Archive source files as .zip
+    - name: Archive source files
       run: |
         VERSION=${GITHUB_REF##*/}
-        mkdir -p release
         zip -r "release/simple-banking-${VERSION}.zip" . -x "release/*"
         tar -czf "release/simple-banking-${VERSION}.tar.gz" .
 
-    - name: List release directory (for debugging)
-      run: ls -alh release  # Add this step to check if files exist
+    - name: List release directory (debugging)
+      run: ls -alh release
 
     - name: Upload release assets to GitHub
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          release/simple-banking-${GITHUB_REF##*/}.zip
-          release/simple-banking-${GITHUB_REF##*/}.tar.gz
-          build/libs/*.jar
+          release/simple-banking-${{ github.ref_name }}.zip
+          release/simple-banking-${{ github.ref_name }}.tar.gz
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Ensure token has correct permissions
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
