@@ -21,10 +21,6 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Set up Gradle
-      uses: gradle/wrapper-validation-action@v1
-      # No need for gradle-version here
-
     - name: Build with Gradle
       run: ./gradlew build  # Build the project and generate the .jar file
 
