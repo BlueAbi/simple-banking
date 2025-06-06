@@ -1,24 +1,36 @@
 plugins {
-    id 'java'  // Apply the Java plugin
+    id 'java'      // Apply the Java plugin
+    id 'application' // Add the 'application' plugin for executable JARs
 }
 
-group = 'com.bankapp'  // Set the group name for your project
-version = '1.0.1'      // Set the version of your project
+group = 'com.bankapp' // Your existing group name
 
-sourceCompatibility = '17'  // Set the Java version for compilation
+// Make the version dynamic. It will use the 'version' property passed by the CI/CD pipeline
+// (e.g., via -Pversion=v1.0.1) or default to '1.0.1-SNAPSHOT' for local development.
+version = project.hasProperty('version') ? project.version : '1.0.1-SNAPSHOT'
+
+sourceCompatibility = '17' // Your existing Java version for compilation
 
 repositories {
-    mavenCentral()  // Use Maven Central to fetch dependencies
+    mavenCentral() // Use Maven Central to fetch any necessary Gradle dependencies (e.g., for the 'application' plugin itself)
 }
 
 dependencies {
-    // No dependencies for now, you can add them later
+    // No dependencies for your simple program, which is great!
+}
+
+application {
+    // Specify the main class for your application. The 'application' plugin uses this.
+    mainClass = 'com.bankapp.BankApp'
 }
 
 tasks.jar {
+    // Customize the JAR file name to include the dynamic version
+    archiveFileName.set("${project.name}-${version}.jar")
     manifest {
         attributes(
-            'Main-Class': 'com.bankapp.BankApp'  // Specify the main class for your application
+            // Reference the mainClass from the 'application' plugin for consistency
+            'Main-Class': application.mainClass.get()
         )
     }
 }
