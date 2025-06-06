@@ -1,9 +1,21 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'
+        required: true
+
+env:
+  JAVA_VERSION: '17'
+  JAVA_DISTRO: 'temurin'
+
 jobs:
   release:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # This grants write access to contents (releases included)
-      actions: write   # Grant permission for actions to create releases
+      contents: write  # Necessary permission for creating releases
 
     steps:
       - name: Checkout code
@@ -12,8 +24,9 @@ jobs:
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRO }}
+          cache: maven
 
       - name: Build the project
         run: ./gradlew build
@@ -25,6 +38,9 @@ jobs:
           tar -czf release/source-${{ github.event.inputs.version }}.tar.gz .
           mv build/libs/*.jar release/simple-banking-${{ github.event.inputs.version }}.jar
 
+      - name: Authenticate GitHub CLI
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+
       - name: Create GitHub release with assets
         run: |
           gh release create "v${{ github.event.inputs.version }}" \
@@ -35,4 +51,4 @@ jobs:
             --notes "Automated release from master" \
             --prerelease
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Ensure the token is used correctly
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Make sure the token is used correctly
