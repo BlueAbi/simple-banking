@@ -1,45 +1,38 @@
-name: Manual Release
-
-on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Release version (e.g., 1.0.0)'
-        required: true
-
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # This grants write access to contents (releases included)
+      actions: write   # Grant permission for actions to create releases
 
     steps:
-    - name: Checkout source
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Java 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
 
-    - name: Build with Gradle
-      run: ./gradlew build  # Build the project and generate the .jar file
+      - name: Build the project
+        run: ./gradlew build
 
-    - name: Prepare source archives
-      run: |
-        mkdir -p release
-        zip -r release/source-${{ github.event.inputs.version }}.zip . -x "release/*"
-        tar -czf release/source-${{ github.event.inputs.version }}.tar.gz .
-        # Move the generated .jar file to the release directory
-        mv build/libs/*.jar release/simple-banking-${{ github.event.inputs.version }}.jar
+      - name: Prepare release assets
+        run: |
+          mkdir -p release
+          zip -r release/source-${{ github.event.inputs.version }}.zip .
+          tar -czf release/source-${{ github.event.inputs.version }}.tar.gz .
+          mv build/libs/*.jar release/simple-banking-${{ github.event.inputs.version }}.jar
 
-    - name: Create GitHub Pre-release with Assets
-      run: |
-        gh release create "v${{ github.event.inputs.version }}" \
-          release/source-${{ github.event.inputs.version }}.zip \
-          release/source-${{ github.event.inputs.version }}.tar.gz \
-          release/simple-banking-${{ github.event.inputs.version }}.jar \
-          --title "v${{ github.event.inputs.version }}" \
-          --notes "Automated pre-release from master" \
-          --prerelease
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # This is the correct way to use the token
+      - name: Create GitHub release with assets
+        run: |
+          gh release create "v${{ github.event.inputs.version }}" \
+            release/source-${{ github.event.inputs.version }}.zip \
+            release/source-${{ github.event.inputs.version }}.tar.gz \
+            release/simple-banking-${{ github.event.inputs.version }}.jar \
+            --title "v${{ github.event.inputs.version }}" \
+            --notes "Automated release from master" \
+            --prerelease
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Ensure the token is used correctly
