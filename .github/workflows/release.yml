@@ -40,8 +40,8 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: |
-            release/simple-banking.zip
-            release/simple-banking.tar.gz
-            build/libs/*.jar
+          release/simple-banking-${{ github.ref_name }}.zip
+          release/simple-banking-${{ github.ref_name }}.tar.gz
+          build/libs/*.jar
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
